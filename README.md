@@ -69,13 +69,26 @@ DevDock Package Manager is a command-line tool for managing apps on Android devi
 
 ---
 
-## Screenshots 📸
-### Main Menu
-![Main Menu](https://via.placeholder.com/800x400?text=Main+Menu+Screenshot)
+## Interface 📸
+```
+Checking for connected devices...
 
-### Listing Packages
-![Listing Packages](https://via.placeholder.com/800x400?text=Listing+Packages+Screenshot)
+Connected device: SM-T385
 
+==================================================
+DevDock Package Manager | Connected Device: SM-T385
+==================================================
+
+1. List all packages
+2. Search for a package
+3. Uninstall a package
+4. About
+5. Exit
+
+==================================================
+
+Enter your choice:
+```
 ---
 
 ## Notes 📝

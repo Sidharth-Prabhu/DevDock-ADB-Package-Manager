@@ -1,10 +1,21 @@
 import subprocess
 import os
 import sys
+import time
 
 def clear_console():
     """Clear the console screen for better UI."""
     os.system('cls' if os.name == 'nt' else 'clear')
+
+def progress_bar(total, desc="Processing", length=40):
+    """Display a progress bar in the console."""
+    for i in range(total + 1):
+        percent = int(100 * (i / total))
+        bar = "=" * (percent * length // 100) + "-" * (length - (percent * length // 100))
+        sys.stdout.write(f"\r{desc}: [{bar}] {percent}%")
+        sys.stdout.flush()
+        time.sleep(0.05)  # Simulate work (adjust timing as needed)
+    sys.stdout.write("\n")  # Move to the next line after completion
 
 def execute_adb_command(command):
     """Execute an ADB command and return the output."""
@@ -33,18 +44,37 @@ def check_device():
             device_name = execute_adb_command(device_name_command) or "Unknown Device"
             print(f"\nConnected device: {device_name}")
             return device_name
+    else:
+        wait_for_device()
     print("\nNo devices detected. Please connect a device and ensure USB debugging is enabled.")
     return None
 
+def wait_for_device():
+    """Wait for a device to be connected with a progress bar."""
+    print("\nWaiting for a device to connect...\n")
+    for _ in range(30):  # Retry for 30 iterations (adjust as needed)
+        command = "adb devices"
+        output = execute_adb_command(command)
+        if output and "device" in output:
+            print("\nDevice connected!")
+            return True
+        #progress_bar(1, desc="Waiting for device", length=30)  # Update the bar step-by-step
+    print("\nNo devices detected. Please connect a device.")
+    return False
+
 def list_packages():
-    """List all packages installed on the connected device."""
+    """List all packages installed on the connected device with a progress bar."""
     print("\nFetching package list...\n")
     command = "adb shell pm list packages"
     output = execute_adb_command(command)
+
     if output:
         packages = [line.replace("package:", "") for line in output.splitlines()]
-        for package in packages:
+        total_packages = len(packages)
+        for i, package in enumerate(packages, start=1):
             print(package)
+            #progress_bar(1, desc=f"Loading package {i}/{total_packages}", length=40)
+        print("\nAll packages loaded.")
         return packages
     else:
         print("\nFailed to retrieve package list. Ensure ADB is set up correctly.")
@@ -88,6 +118,8 @@ def package_actions(package_name):
 
         if choice == "1":
             print(f"\nAttempting to open {package_name}...")
+            progress_bar(20, desc=f"Launching {package_name}")  # Simulate progress
+            
             command = f"adb shell monkey -p {package_name} -c android.intent.category.LAUNCHER 1"
             output = execute_adb_command(command)
             if output:
@@ -103,10 +135,13 @@ def package_actions(package_name):
             print("\nInvalid choice. Please try again.")
 
 def uninstall_package(package_name=None):
-    """Uninstall a package."""
+    """Uninstall a package with a progress bar."""
     if not package_name:
         package_name = input("\nEnter the full package name to uninstall: ").strip()
     print(f"\nAttempting to uninstall {package_name}...\n")
+    
+    progress_bar(20, desc=f"Uninstalling {package_name}")  # Simulate progress with 20 steps
+    
     command = f"adb uninstall {package_name}"
     output = execute_adb_command(command)
     if output and "Success" in output:
@@ -118,16 +153,16 @@ def about():
     """Display information about the developer and software."""
     clear_console()
     print("=" * 50)
-    print(" " * 14 + "About ADB Package Manager")
+    print(" " * 14 + "About DevDock Package Manager")
     print("=" * 50)
     print("\nThis software is an ADB Package Manager that allows you to:")
     print("- List all installed apps on your Android device.")
     print("- Search for specific packages.")
     print("- Uninstall user and system apps.")
     print("- Launch apps directly from the terminal.")
-    print("\nDeveloped by: [Your Name]")
+    print("\nDeveloped by: Sidharth Prabhu")
     print("Version: 1.0")
-    print("GitHub: https://github.com/your-profile (replace with your link)")
+    print("GitHub: https://github.com/Sidharth-Prabhu/DevDock-ADB-Package-Manager")
     print("\nNote: Ensure ADB is properly configured and your device has USB debugging enabled.")
     print("=" * 50)
     input("\nPress Enter to return to the main menu...")
@@ -143,14 +178,13 @@ def main():
     while True:
         clear_console()
         print("=" * 50)
-        print(f"ADB Package Manager | Connected Device: {device_name}")
+        print(f"DevDock Package Manager | Connected Device: {device_name}")
         print("=" * 50)
         print("\n1. List all packages")
         print("2. Search for a package")
         print("3. Uninstall a package")
-        print("4. Uninstall a system app (user 0)")
-        print("5. About")
-        print("6. Exit")
+        print("4. About")
+        print("5. Exit")
         print("\n" + "=" * 50)
         
         choice = input("\nEnter your choice: ").strip()
@@ -168,12 +202,8 @@ def main():
             uninstall_package()
             input("\nPress Enter to return to the main menu...")
         elif choice == "4":
-            clear_console()
-            uninstall_package(use_system_user=True)
-            input("\nPress Enter to return to the main menu...")
-        elif choice == "5":
             about()
-        elif choice == "6":
+        elif choice == "5":
             clear_console()
             print("\nExiting... Goodbye!")
             break

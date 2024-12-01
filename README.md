@@ -109,7 +109,7 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 ---
 
 ## Developer 💻
-- **[Your Name]**
-- GitHub: [https://github.com/your-profile](https://github.com/your-profile)
+- **Sidharth Prabhu**
+- GitHub: [https://github.com/Sidharth-Prabhu](https://github.com/Sidharth-Prabhu)
 - Version: 1.0
 ```

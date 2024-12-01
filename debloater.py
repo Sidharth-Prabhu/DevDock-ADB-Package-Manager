@@ -142,7 +142,7 @@ def uninstall_package(package_name=None):
     
     progress_bar(20, desc=f"Uninstalling {package_name}")  # Simulate progress with 20 steps
     
-    command = f"adb uninstall {package_name}"
+    command = f"adb shell pm uninstall --user 0 {package_name}"
     output = execute_adb_command(command)
     if output and "Success" in output:
         print(f"\nPackage {package_name} uninstalled successfully.")

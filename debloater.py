@@ -4,11 +4,9 @@ import sys
 import time
 
 def clear_console():
-    """Clear the console screen for better UI."""
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def progress_bar(total, desc="Processing", length=40):
-    """Display a progress bar in the console."""
     for i in range(total + 1):
         percent = int(100 * (i / total))
         bar = "=" * (percent * length // 100) + "-" * (length - (percent * length // 100))
@@ -18,7 +16,6 @@ def progress_bar(total, desc="Processing", length=40):
     sys.stdout.write("\n")  # Move to the next line after completion
 
 def execute_adb_command(command):
-    """Execute an ADB command and return the output."""
     try:
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
         if result.returncode == 0:
@@ -31,7 +28,6 @@ def execute_adb_command(command):
         return None
 
 def check_device():
-    """Check if any device is connected and return its name."""
     print("\nChecking for connected devices...")
     command = "adb devices"
     output = execute_adb_command(command)
@@ -50,7 +46,6 @@ def check_device():
     return None
 
 def wait_for_device():
-    """Wait for a device to be connected with a progress bar."""
     print("\nWaiting for a device to connect...\n")
     for _ in range(30):  # Retry for 30 iterations (adjust as needed)
         command = "adb devices"
@@ -63,7 +58,6 @@ def wait_for_device():
     return False
 
 def list_packages():
-    """List all packages installed on the connected device with a progress bar."""
     print("\nFetching package list...\n")
     command = "adb shell pm list packages"
     output = execute_adb_command(command)
@@ -81,7 +75,6 @@ def list_packages():
         return []
 
 def search_package(packages):
-    """Search for a package name and provide additional options."""
     search_term = input("\nEnter the package name to search for: ").strip()
     matching_packages = [pkg for pkg in packages if search_term in pkg]
     
@@ -108,7 +101,6 @@ def search_package(packages):
         print("\nNo matching packages found.")
 
 def package_actions(package_name):
-    """Perform actions on a selected package."""
     while True:
         print(f"\nPackage: {package_name}")
         print("1. Open the app")
@@ -135,7 +127,6 @@ def package_actions(package_name):
             print("\nInvalid choice. Please try again.")
 
 def uninstall_package(package_name=None):
-    """Uninstall a package with a progress bar."""
     if not package_name:
         package_name = input("\nEnter the full package name to uninstall: ").strip()
     print(f"\nAttempting to uninstall {package_name}...\n")
@@ -150,7 +141,6 @@ def uninstall_package(package_name=None):
         print(f"\nFailed to uninstall package {package_name}. Please check the package name.")
 
 def about():
-    """Display information about the developer and software."""
     clear_console()
     print("=" * 50)
     print(" " * 14 + "About DevDock Package Manager")
@@ -168,7 +158,6 @@ def about():
     input("\nPress Enter to return to the main menu...")
 
 def main():
-    """Main menu-driven program."""
     device_name = check_device()
     if not device_name:
         input("\nPress Enter to exit...")

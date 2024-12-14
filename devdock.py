@@ -69,6 +69,9 @@ def package_manager_mode():
     packages = []
     while True:
         clear_console()
+        print("=" * 20)
+        print("PACKAGE MANAGER MODE")
+        print("=" * 20)
         print("\n1. List all packages")
         print("2. Search for a package")
         print("3. Uninstall a package")
@@ -96,9 +99,6 @@ def package_manager_mode():
             qrpackage_app_install()
         elif choice == "5":
             clear_console()
-            print("=" * 25)
-            print("Select an option below:")
-            print("=" * 25)
             reboot_device()
         elif choice == "6":
             clear_console()
@@ -122,13 +122,26 @@ def flashing_mode():
         print("\n1. Reboot Device")
         print("2. Reboot to Bootloader/Fastboot")
         print("3. Reboot to Recovery")
-        print("4. Exit")
+        print("4. Sideload")
+        print("5. Exit")
         choice = input("\nSelect an option: ")
         if choice == "1":
-            continue
-        if choice == "2":
+            command = "adb reboot"
+            execute_adb_command(command)
+        elif choice == "2":
             clear_console()
             bootloader_mode()
+        elif choice == "3":
+            command = "adb reboot recovery"
+            execute_adb_command(command)
+        elif choice == "4":
+            fileloc = input("\nDrag and drop the file here: ")
+            command = f"adb sideload {fileloc}"
+            execute_adb_command(command)
+        elif choice == "5":
+            return
+        else:
+            input("Select a valid ooption (Press Enter)...")
 
 def list_packages():
     print("\nFetching package list...\n")
@@ -247,6 +260,8 @@ def about():
     input("\nPress Enter to return to the main menu...")
 
 def bootloader_mode():
+    print("\nRebooting to Bootloader...")
+    execute_adb_command("adb reboot bootloader")
     while True:
         clear_console()
         print("=" * 30)
@@ -298,15 +313,55 @@ def bootloader_mode():
             clear_console()
             fileloc = input("\nDrag and drop the recovery file here: ")
             command = f"fastboot flash recovery {fileloc}"
-            print(command)
             output = execute_adb_command(command)
             if output:
                 print("Recovery flashed into the system...")
                 input("\nPress Enter to return to the menu:")
             else:
                 print("Recovery flash failed.")
-                input("\nPress Enter to return to the main menu:")
-                # Start from here
+                input("\nPress Enter to return to the menu:")
+        elif choice == "6":
+            clear_console()
+            fileloc = input("\nDrag and drop the vendor_boot file here: ")
+            command = f"fastboot flash vendor_boot {fileloc}"
+            output = execute_adb_command(command)
+            if output:
+                print("vendor_boot flashed into the system...")
+                input("\nPress Enter to return to the menu:")
+            else:
+                print("vendor_boot flash failed.")
+                input("\nPress Enter to return to the menu:")
+        elif choice == "7":
+            clear_console()
+            fileloc = input("\nDrag and drop the boot file here: ")
+            command = f"fastboot flash boot {fileloc}"
+            output = execute_adb_command(command)
+            if output:
+                print("Boot flashed into the system...")
+                input("\nPress Enter to return to the menu:")
+            else:
+                print("Boot flash failed...")
+                input("\nPress Enter to return to the menu")
+        elif choice == "8":
+            clear_console()
+            filename = input("\nEnter the custom partition: ")
+            fileloc = input("\nDrag and drop the file here: ")
+            command = f"fastboot flash {filename} {fileloc}"
+            output = execute_adb_command(command)
+            if output:
+                print(f"{filename} flash into the system...")
+                input("\nPress Enter to return to the menu")
+            else:
+                print(f"{filename} flash failed...")
+                input("\nPress Enter to return to the menu")
+        elif choice == "9":
+            clear_console()
+            command = "fastboot reboot recovery"
+            execute_adb_command(command)
+        elif choice == "10":
+            return
+        else:
+            input("\nInvalid option. Select a valid option (Press Enter)...")
 
 def main():
     device_name = check_device()
@@ -315,7 +370,7 @@ def main():
         sys.exit(1)
 
     while True:
-
+        clear_console()
         print("=" * 50)
         print(f"DevDock Package Manager | Connected Device: {device_name}")
         print("=" * 50)

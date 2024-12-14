@@ -2,6 +2,8 @@ import subprocess
 import os
 import sys
 import time
+import qrcode
+from qrcode.console_scripts import main as qrcode_terminal
 
 def clear_console():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -56,6 +58,77 @@ def wait_for_device():
         #progress_bar(1, desc="Waiting for device", length=30)  # Update the bar step-by-step
     print("\nNo devices detected. Please connect a device.")
     return False
+
+
+def package_manager_mode():
+    device_name = check_device()
+    if not device_name:
+        input("\nPress Enter to exit...")
+        sys.exit(1)
+
+    packages = []
+    while True:
+        clear_console()
+        print("\n1. List all packages")
+        print("2. Search for a package")
+        print("3. Uninstall a package")
+        print("4. How to find Package Name?")
+        print("5. Reboot Device")
+        print("6. Exit")
+        print("\n" + "=" * 50)
+
+        choice = input("\nEnter your choice: ").strip()
+        if choice == "1":
+            clear_console()
+            packages = list_packages()
+            input("\nPress Enter to return to the main menu...")
+        elif choice == "2":
+            if not packages:
+                packages = list_packages()
+            clear_console()
+            search_package(packages)
+        elif choice == "3":
+            clear_console()
+            uninstall_package()
+            input("\nPress Enter to return to the main menu...")
+        elif choice == "4":
+            clear_console()
+            qrpackage_app_install()
+        elif choice == "5":
+            clear_console()
+            print("=" * 25)
+            print("Select an option below:")
+            print("=" * 25)
+            reboot_device()
+        elif choice == "6":
+            clear_console()
+            print("\nExiting...")
+            return
+        else:
+            print("\nInvalid choice. Please try again.")
+            input("\nPress Enter to return to the main menu...")
+
+def flashing_mode():
+    device_name = check_device()
+    if not device_name:
+        input("\nPress Enter to exit...")
+        sys.exit(1)
+
+    while True:
+        clear_console()
+        print("+" * 14)
+        print("FLASHING MODE")
+        print("+" * 14)
+        print("\n1. Reboot Device")
+        print("2. Reboot to Bootloader/Fastboot")
+        print("3. Reboot to Recovery")
+        print("4. Exit")
+        choice = input("\nSelect an option: ")
+        if choice == "1":
+            continue
+        if choice == "2":
+            clear_console()
+            bootloader_mode()
 
 def list_packages():
     print("\nFetching package list...\n")
@@ -140,10 +213,26 @@ def uninstall_package(package_name=None):
     else:
         print(f"\nFailed to uninstall package {package_name}. Please check the package name.")
 
+def qrpackage_app_install():
+    print(f"To find the package name for the apps in your device, you can install the 'Package Name Viewer' from Google Play.")
+    print("Scan the qr code to download the app:")
+
+    # Link to the app
+    url = "https://play.google.com/store/apps/details?id=com.csdroid.pkg&hl=en_IN"
+    qr = qrcode.QRCode()
+    qr.add_data(url)
+    qr.make()
+    qr.print_ascii()
+    input("\nPress Enter to return to the main menu.")
+
+def reboot_device():
+    command = "adb reboot"
+    execute_adb_command(command)
+
 def about():
     clear_console()
     print("=" * 50)
-    print(" " * 14 + "About DevDock Package Manager")
+    print(" " * 14 + "About DevDock ADB Toolkit")
     print("=" * 50)
     print("\nThis software is an ADB Package Manager that allows you to:")
     print("- List all installed apps on your Android device.")
@@ -157,48 +246,97 @@ def about():
     print("=" * 50)
     input("\nPress Enter to return to the main menu...")
 
+def bootloader_mode():
+    while True:
+        clear_console()
+        print("=" * 30)
+        print("Bootloader/Fastboot Operations")
+        print("=" * 30)
+        print("\n1. Unlock Bootloader")
+        print("2. Lock Bootloader")
+        print("3. Check Bootloader State")
+        print("4. Erase Data")
+        print("5. FLASH recovery.img")
+        print("6. FLASH boot.img")
+        print("7. FLASH vendor_boot.img")
+        print("8. FLASH <custom>.img")
+        print("9. Reboot to Recovery")
+        print("10. Exit")
+        choice = input("\nSelect an option: ")
+        if choice == "1":
+            command = "fastboot oem unlock"
+            output = execute_adb_command(command)
+            if output:
+                print("Bootloader Unlocked...")
+                input("\nPress Enter to return to the menu:")
+            else:
+                print("Bootloader unable to unlock.")
+                input("\nPress Enter to return to the menu:")
+        elif choice == "2":
+            command = "fastboot oem lock"
+            output = execute_adb_command(command)
+            if output:
+                print("Bootloader locked...")
+                input("\nPress Enter to return to the menu:")
+            else:
+                print("Bootloader unable to lock.")
+                input("\nPress Enter to return to the menu:")
+        elif choice == "3":
+            command = "fastboot getvar unlocked"
+            execute_adb_command(command)
+            input("\nPress Enter to return to the menu:")
+        elif choice == "4":
+            command = "fastboot erase userdata"
+            output = execute_adb_command(command)
+            if output:
+                print("Device Data Erased...")
+                input("\nPress Enter to return to the menu:")
+            else:
+                print("Device Erase unsuccessful...")
+                input("\nPress Enter to return to the menu:")
+        elif choice == "5":
+            clear_console()
+            fileloc = input("\nDrag and drop the recovery file here: ")
+            command = f"fastboot flash recovery {fileloc}"
+            print(command)
+            output = execute_adb_command(command)
+            if output:
+                print("Recovery flashed into the system...")
+                input("\nPress Enter to return to the menu:")
+            else:
+                print("Recovery flash failed.")
+                input("\nPress Enter to return to the main menu:")
+                # Start from here
+
 def main():
     device_name = check_device()
     if not device_name:
         input("\nPress Enter to exit...")
         sys.exit(1)
 
-    packages = []
     while True:
-        clear_console()
+
         print("=" * 50)
         print(f"DevDock Package Manager | Connected Device: {device_name}")
         print("=" * 50)
-        print("\n1. List all packages")
-        print("2. Search for a package")
-        print("3. Uninstall a package")
-        print("4. About")
-        print("5. Exit")
-        print("\n" + "=" * 50)
-        
-        choice = input("\nEnter your choice: ").strip()
+        print("\n1. PACKAGE MANAGER MODE")
+        print("2. FLASHING MODE")
+        print("3. About")
+        print("4. Exit")
+
+        choice = input("\nSelect a mode: ")
         if choice == "1":
-            clear_console()
-            packages = list_packages()
-            input("\nPress Enter to return to the main menu...")
+            package_manager_mode()
         elif choice == "2":
-            if not packages:
-                packages = list_packages()
-            clear_console()
-            search_package(packages)
+            flashing_mode()
         elif choice == "3":
-            clear_console()
-            uninstall_package()
-            input("\nPress Enter to return to the main menu...")
-        elif choice == "4":
             about()
-        elif choice == "5":
+        elif choice == "4":
             clear_console()
             print("\nExiting... Goodbye!")
             break
         else:
-            print("\nInvalid choice. Please try again.")
-            input("\nPress Enter to return to the main menu...")
-
+            print("\nInvalid option...")
+            
 if __name__ == "__main__":
     main()
